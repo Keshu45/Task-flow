@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  root: 'client',
+  root: __dirname,
   build: {
     outDir: '../dist/client',
     emptyOutDir: true,

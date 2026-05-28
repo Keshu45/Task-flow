@@ -3,11 +3,15 @@ import mongoose from 'mongoose';
 import Task, { ITask } from '../models/Task.js';
 import { calculatePriorityScore } from '../utils/priority.js';
 
+let mockTasks: any[] = [];
+let mockIdCounter = 1;
+
 // Map DB Document to API response with calculated score
 const mapTaskToResponse = (task: ITask) => {
   const score = calculatePriorityScore(task.importance, task.dueDate, task.status);
+  const taskObj = typeof task.toObject === 'function' ? task.toObject() : task;
   return {
-    ...task.toObject(),
+    ...taskObj,
     priorityScore: score
   };
 };
@@ -19,6 +23,12 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
     if (new Date(dueDate) < new Date(new Date().setHours(0, 0, 0, 0))) {
       res.status(400);
       throw new Error('Due date must be in the future');
+    }
+
+    if (!process.env.MONGODB_URI) {
+      const task = { _id: String(mockIdCounter++), title, description, importance, dueDate, status: 'pending', createdAt: new Date() };
+      mockTasks.push(task);
+      return res.status(201).json(mapTaskToResponse(task as any));
     }
 
     const task = await Task.create({ title, description, importance, dueDate });
@@ -35,6 +45,15 @@ export const getTasks = async (req: Request, res: Response, next: NextFunction) 
   try {
     const { status, minImportance } = req.query;
     
+    if (!process.env.MONGODB_URI) {
+       let filteredTasks = mockTasks;
+       if (status) filteredTasks = filteredTasks.filter(t => t.status === status);
+       if (minImportance) filteredTasks = filteredTasks.filter(t => t.importance >= Number(minImportance));
+       const mappedTasks = filteredTasks.map(t => mapTaskToResponse(t as any));
+       mappedTasks.sort((a, b) => b.priorityScore - a.priorityScore);
+       return res.json(mappedTasks);
+    }
+
     // Build filter query
     const filter: any = {};
     if (status) filter.status = status;
@@ -56,6 +75,13 @@ export const getTasks = async (req: Request, res: Response, next: NextFunction) 
 
 export const updateTask = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!process.env.MONGODB_URI) {
+      const idx = mockTasks.findIndex(t => t._id === req.params.id);
+      if (idx === -1) { res.status(404); throw new Error('Task not found'); }
+      mockTasks[idx] = { ...mockTasks[idx], ...req.body };
+      return res.json(mapTaskToResponse(mockTasks[idx] as any));
+    }
+
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       res.status(400);
       throw new Error('Invalid Task ID');
@@ -81,6 +107,13 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
 
 export const deleteTask = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!process.env.MONGODB_URI) {
+      const idx = mockTasks.findIndex(t => t._id === req.params.id);
+      if (idx === -1) { res.status(404); throw new Error('Task not found'); }
+      mockTasks.splice(idx, 1);
+      return res.json({ message: 'Task removed' });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       res.status(400);
       throw new Error('Invalid Task ID');
@@ -101,6 +134,29 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
 export const getTaskStats = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const now = new Date();
+    
+    if (!process.env.MONGODB_URI) {
+      const pendingTasks = mockTasks.filter(t => t.status === 'pending').length;
+      const completedTasks = mockTasks.filter(t => t.status === 'completed').length;
+      const overdueTasks = mockTasks.filter(t => t.status === 'pending' && new Date(t.dueDate) < now).length;
+      const totalImportance = mockTasks.reduce((sum, t) => sum + t.importance, 0);
+      
+      const tasksByImp: Record<number, number> = {};
+      mockTasks.forEach((t) => {
+        tasksByImp[t.importance] = (tasksByImp[t.importance] || 0) + 1;
+      });
+      const tasksByImportance = Object.entries(tasksByImp).map(([imp, count]) => ({ _id: Number(imp), count }));
+
+      return res.json({
+        totalTasks: mockTasks.length,
+        pendingTasks,
+        completedTasks,
+        averageImportance: mockTasks.length ? (totalImportance / mockTasks.length) : 0,
+        overdueTasks,
+        tasksByImportance
+      });
+    }
+
     const statsArray = await Task.aggregate([
       {
         $facet: {
