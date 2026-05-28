@@ -1,11 +1,10 @@
-import React from 'react';
 import { TaskStats } from '../types';
 
 interface Props {
   stats: TaskStats | null;
 }
 
-const TaskStatsView: React.FC<Props> = ({ stats }) => {
+const TaskStatsView = ({ stats }: Props) => {
   if (!stats) return <div className="animate-pulse bg-white rounded-xl shadow-sm border border-gray-200 h-24"></div>;
 
   const total = stats.totalTasks || 0;

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Task } from '../types';
+import { useState } from 'react';
 import api from '../api/axios';
 
 interface Props {

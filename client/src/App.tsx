@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from './api/axios';
 import { Task, TaskStats } from './types';
 import TaskForm from './components/TaskForm';
