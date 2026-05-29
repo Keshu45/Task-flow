@@ -99,18 +99,18 @@ function App() {
         </div>
 
         {/* Right Column: Stats & Task List */}
-        <div className="flex-1 w-full flex flex-col gap-6 overflow-hidden">
+        <div className="flex-1 w-full flex flex-col gap-6">
           {/* Quick Stats Section */}
           <TaskStatsView stats={stats} />
 
           {/* Task List (The Core) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col">
             <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white">
               <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
                  Tasks in Queue
                  {loading && <span className="text-blue-600 text-sm font-normal">Loading...</span>}
               </h3>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <select 
                   className="text-sm bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-3 py-2 outline-none hover:bg-gray-100 transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   value={statusFilter}
@@ -133,7 +133,7 @@ function App() {
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 md:max-h-[60vh] bg-gray-50/50">
+            <div className="flex-1 p-4 sm:p-5 bg-gray-50/50">
                {error ? (
                  <div className="text-center text-red-500 p-4 font-medium">{error}</div>
                ) : tasks.length === 0 && !loading ? (

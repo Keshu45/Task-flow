@@ -10,15 +10,14 @@
 
 body {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #F5F7FA;
   color: #1A1A1A;
   font-family: var(--font-sans);
-  overflow: hidden;
 }
 
 #root {
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
