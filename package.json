@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server/src/server.ts",
-    "build": "vite build --config client/vite.config.ts && esbuild server/src/server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
+    "dev": "concurrently \"PORT=5000 npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "start": "npm run start --prefix server",
     "preview": "npm run start",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
@@ -36,6 +36,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^10.0.0",
     "esbuild": "^0.25.0",
     "tailwindcss": "^4.3.0",
     "tsx": "^4.21.0",

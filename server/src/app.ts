@@ -3,18 +3,27 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import taskRoutes from './routes/taskRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 
 // Middleware
-const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',') 
+  : '*'; // Open by default if not specified, making Vercel deployments easy
+
 app.use(cors({
-  origin: allowedOrigin === '/' ? '*' : [allowedOrigin, 'http://localhost:5173', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true
 }));
 app.use(helmet({
   contentSecurityPolicy: false // Disabled for Vite dev server compatibility
